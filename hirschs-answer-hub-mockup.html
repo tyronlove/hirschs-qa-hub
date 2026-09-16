@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hirsch's Answer Hub — Q&amp;A Hub Mock-up</title>
+<style>
+  :root{
+    --brand:#1E398D;
+    --brand-dark:#152A6B;
+    --brand-tint:#EEF1FA;
+    --accent:#E8541F;
+    --accent-tint:#FDF0EA;
+    --ink:#0F172A;
+    --ink-2:#475569;
+    --muted:#7A8798;
+    --line:#E2E8F0;
+    --line-2:#F1F5F9;
+    --bg:#F7F9FC;
+    --white:#fff;
+    --ok:#0F7A52;
+    --ok-tint:#E8F5EF;
+    --note:#7C3AED;
+    --note-tint:#F3EEFE;
+    --radius:14px;
+    --shadow:0 1px 2px rgba(15,23,42,.05), 0 8px 24px rgba(15,23,42,.06);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.55; -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;text-decoration:none}
+  button{font:inherit;cursor:pointer}
+
+  /* ---------- chrome ---------- */
+  .topbar{background:var(--brand);color:#fff;font-size:12.5px}
+  .topbar .wrap{display:flex;gap:18px;align-items:center;justify-content:space-between;padding:7px 0}
+  .topbar .left{display:flex;gap:18px;opacity:.9}
+  .masthead{background:var(--white);border-bottom:1px solid var(--line)}
+  .masthead .wrap{display:flex;align-items:center;gap:28px;padding:16px 0}
+  .logo{display:block;flex:0 0 auto}
+  .logo img{display:block;height:58px;width:auto}
+  .nav{display:flex;gap:20px;font-size:13.5px;font-weight:500;color:var(--ink-2);flex-wrap:wrap}
+  .nav a:hover{color:var(--brand)}
+  .wrap{max-width:1160px;margin:0 auto;padding:0 24px}
+
+  /* ---------- annotation system ---------- */
+  .anno{display:none}
+  body.show-anno .anno{display:block}
+  body.show-anno .anno-inline{display:inline-flex}
+  .anno-inline{display:none}
+  .anno{
+    background:var(--note-tint);border:1px dashed #C4B5FD;border-radius:10px;
+    padding:10px 13px;font-size:12.5px;color:#4C1D95;margin:12px 0;line-height:1.5;
+  }
+  .anno b{color:#3B0764}
+  .anno code{background:#fff;border:1px solid #DDD6FE;border-radius:4px;padding:1px 5px;font-size:11.5px}
+  .anno-inline{
+    align-items:center;gap:5px;background:var(--note-tint);border:1px dashed #C4B5FD;
+    color:#5B21B6;font-size:11px;font-weight:600;border-radius:999px;padding:2px 9px;
+    white-space:nowrap;letter-spacing:.2px;
+  }
+  .toggle-bar{
+    position:sticky;top:0;z-index:50;background:var(--ink);color:#fff;
+    font-size:13px;padding:9px 0;
+  }
+  .toggle-bar .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .toggle-bar .tag{font-weight:700;letter-spacing:.3px}
+  .toggle-bar .tag em{font-style:normal;color:#94A3B8;font-weight:500}
+  .switches{display:flex;gap:8px;flex-wrap:wrap}
+  .switch{
+    background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);color:#fff;
+    border-radius:999px;padding:5px 14px;font-size:12.5px;font-weight:600;transition:.15s;
+  }
+  .switch:hover{background:rgba(255,255,255,.2)}
+  .switch.on{background:#fff;color:var(--ink);border-color:#fff}
+
+  /* ---------- hero ---------- */
+  .hero{background:linear-gradient(160deg,var(--brand) 0%,var(--brand-dark) 100%);color:#fff;padding:44px 0 40px}
+  .hero h1{margin:0 0 10px;font-size:36px;letter-spacing:-.8px;font-weight:800}
+  .hero p{margin:0;max-width:620px;color:#C9DBF2;font-size:16px}
+  .searchbox{
+    margin-top:24px;max-width:640px;background:#fff;border-radius:12px;display:flex;
+    align-items:center;padding:6px 6px 6px 16px;box-shadow:0 10px 30px rgba(8,58,122,.25)
+  }
+  .searchbox input{flex:1;border:0;outline:0;font-size:15px;padding:11px 0;color:var(--ink)}
+  .searchbox button{background:var(--accent);color:#fff;border:0;border-radius:9px;padding:11px 20px;font-weight:700;font-size:14px}
+  .crumbs{font-size:12.5px;color:var(--muted);padding:16px 0 0}
+  .crumbs a{color:var(--brand);font-weight:500}
+
+  /* ---------- layout ---------- */
+  main{padding:0 0 70px}
+  .section-head{display:flex;align-items:baseline;gap:12px;margin:38px 0 14px;flex-wrap:wrap}
+  .section-head h2{margin:0;font-size:20px;letter-spacing:-.3px}
+  .section-head .count{font-size:12.5px;color:var(--muted)}
+  .rule{height:1px;background:var(--line);margin:0 0 18px}
+
+  .cat-nav{display:flex;gap:8px;flex-wrap:wrap;margin:28px 0 4px}
+  .cat-pill{
+    background:#fff;border:1px solid var(--line);border-radius:999px;padding:7px 15px;
+    font-size:13px;font-weight:600;color:var(--ink-2);transition:.15s
+  }
+  .cat-pill:hover{border-color:var(--brand);color:var(--brand)}
+  .cat-pill.on{background:var(--brand);border-color:var(--brand);color:#fff}
+
+  /* ---------- tier A cards ---------- */
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px}
+  .qcard{
+    background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:20px;
+    display:flex;flex-direction:column;gap:11px;transition:.16s;box-shadow:var(--shadow);cursor:pointer;
+  }
+  .qcard:hover{border-color:var(--brand);transform:translateY(-2px)}
+  .qcard h3{margin:0;font-size:16.5px;line-height:1.35;letter-spacing:-.2px}
+  .qcard p{margin:0;font-size:13.5px;color:var(--ink-2)}
+  .qcard .foot{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:6px}
+  .qcard .go{color:var(--brand);font-weight:700;font-size:13px}
+  .chips{display:flex;gap:6px;flex-wrap:wrap}
+  .chip{
+    font-size:11px;font-weight:600;border-radius:999px;padding:3px 9px;letter-spacing:.2px;
+    background:var(--line-2);color:var(--ink-2)
+  }
+  .chip.prod{background:var(--accent-tint);color:#9A3412}
+  .chip.cat{background:var(--brand-tint);color:var(--brand)}
+
+  /* ---------- tier B accordion ---------- */
+  .faq{background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+  .faq-item + .faq-item{border-top:1px solid var(--line-2)}
+  .faq-q{
+    width:100%;text-align:left;background:none;border:0;padding:17px 20px;display:flex;
+    align-items:center;gap:14px;justify-content:space-between;font-size:15.5px;font-weight:600;color:var(--ink)
+  }
+  .faq-q:hover{background:#FAFCFF}
+  .faq-q .ic{
+    flex:0 0 22px;height:22px;border-radius:50%;background:var(--brand-tint);color:var(--brand);
+    display:grid;place-items:center;font-size:14px;font-weight:700;transition:.2s
+  }
+  .faq-item.open .faq-q .ic{background:var(--brand);color:#fff;transform:rotate(45deg)}
+  .faq-a{display:none;padding:0 20px 20px 56px;font-size:14.5px;color:var(--ink-2);max-width:820px}
+  .faq-item.open .faq-a{display:block}
+  .faq-a p{margin:0 0 10px}
+  .faq-a .deep{font-size:13px;color:var(--brand);font-weight:600}
+
+  /* ---------- detail page ---------- */
+  .detail{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:40px;align-items:start;margin-top:8px}
+  .detail h1{font-size:31px;line-height:1.25;letter-spacing:-.7px;margin:8px 0 14px}
+  .byline{font-size:12.5px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:22px}
+  .byline .dot{width:3px;height:3px;border-radius:50%;background:#CBD5E1}
+  .quickans{
+    background:var(--ok-tint);border-left:4px solid var(--ok);border-radius:0 12px 12px 0;
+    padding:18px 22px;margin:0 0 26px
+  }
+  .quickans .lbl{font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--ok);margin-bottom:6px}
+  .quickans p{margin:0;font-size:16px;color:#123}
+  .body h2{font-size:20px;letter-spacing:-.3px;margin:30px 0 10px}
+  .body h3{font-size:16px;margin:22px 0 8px}
+  .body p{margin:0 0 14px;font-size:15.5px;color:#25313F}
+  .body ul{margin:0 0 16px;padding-left:20px;font-size:15.5px;color:#25313F}
+  .body li{margin-bottom:7px}
+  table.spec{width:100%;border-collapse:collapse;font-size:14px;margin:6px 0 20px;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  table.spec th{background:var(--brand-tint);color:var(--brand);text-align:left;padding:10px 14px;font-size:12.5px;letter-spacing:.3px;text-transform:uppercase}
+  table.spec td{padding:10px 14px;border-top:1px solid var(--line-2);color:var(--ink-2)}
+  table.spec td:first-child{font-weight:600;color:var(--ink)}
+
+  /* ---------- product module ---------- */
+  .module{margin:34px 0 0}
+  .module-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+  .module-head h2{margin:0;font-size:19px;letter-spacing:-.3px}
+  .module-head .sub{font-size:12.5px;color:var(--muted)}
+  .prods{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
+  .prod{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px;transition:.16s}
+  .prod:hover{border-color:var(--brand);box-shadow:var(--shadow)}
+  .thumb{
+    height:120px;border-radius:9px;background:linear-gradient(135deg,#F1F5F9,#E2E8F0);
+    display:grid;place-items:center;color:#94A3B8;font-size:11px;font-weight:600;letter-spacing:.4px
+  }
+  .prod .name{font-size:13.2px;font-weight:600;line-height:1.35;min-height:54px}
+  .prod .price{font-size:16px;font-weight:800;color:var(--ink)}
+  .prod .was{font-size:12px;color:var(--muted);text-decoration:line-through;margin-left:6px;font-weight:500}
+  .prod .cta{background:var(--brand);color:#fff;border:0;border-radius:8px;padding:8px;font-size:12.5px;font-weight:700;width:100%}
+  .src{font-size:10.5px;font-weight:600;letter-spacing:.2px;border-radius:5px;padding:2px 6px;display:inline-block}
+  .src.real{background:var(--ok-tint);color:var(--ok)}
+  .src.mock{background:#FEF3C7;color:#92400E}
+
+  /* ---------- related questions ---------- */
+  .rq{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+  .rq a{
+    background:#fff;border:1px solid var(--line);border-radius:11px;padding:15px 17px;
+    font-size:14.2px;font-weight:600;display:flex;justify-content:space-between;gap:12px;
+    align-items:center;transition:.15s;line-height:1.35
+  }
+  .rq a:hover{border-color:var(--brand);color:var(--brand)}
+  .rq .arrow{color:var(--brand);font-weight:800;flex:0 0 auto}
+
+  /* ---------- sidebar ---------- */
+  aside .box{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:16px;box-shadow:var(--shadow)}
+  aside h4{margin:0 0 12px;font-size:13px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted)}
+  aside .toc a{display:block;font-size:13.5px;padding:6px 0;border-bottom:1px solid var(--line-2);color:var(--ink-2)}
+  aside .toc a:last-child{border-bottom:0}
+  aside .toc a:hover{color:var(--brand)}
+  .helpbox{background:var(--brand);color:#fff;border-radius:var(--radius);padding:20px}
+  .helpbox h4{color:#BFD5F0;margin-bottom:8px}
+  .helpbox p{margin:0 0 14px;font-size:13.5px;color:#DCE8F7}
+  .helpbox button{width:100%;background:#fff;color:var(--brand);border:0;border-radius:9px;padding:10px;font-weight:700;font-size:13.5px}
+
+  /* ---------- strategy panel ---------- */
+  .strategy{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:26px 28px;margin-top:44px;box-shadow:var(--shadow)}
+  .strategy h2{margin:0 0 6px;font-size:21px;letter-spacing:-.4px}
+  .strategy .lead{color:var(--ink-2);font-size:14.5px;margin:0 0 22px;max-width:780px}
+  .tiers{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px;margin-bottom:24px}
+  .tier{border:1px solid var(--line);border-radius:12px;padding:18px;background:#FCFDFF}
+  .tier .badge{font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;border-radius:6px;padding:3px 8px;display:inline-block;margin-bottom:9px}
+  .tier.a .badge{background:var(--accent-tint);color:#9A3412}
+  .tier.b .badge{background:var(--ok-tint);color:var(--ok)}
+  .tier h3{margin:0 0 8px;font-size:16px}
+  .tier p{margin:0 0 10px;font-size:13.8px;color:var(--ink-2)}
+  .tier ul{margin:0;padding-left:18px;font-size:13.5px;color:var(--ink-2)}
+  .tier li{margin-bottom:5px}
+  .verdict{background:var(--brand-tint);border-radius:12px;padding:20px 22px;font-size:14.5px;color:#0C3A72}
+  .verdict b{color:var(--brand-dark)}
+  pre.schema{
+    background:#0F172A;color:#CBD5E1;border-radius:10px;padding:16px 18px;overflow:auto;
+    font-size:12px;line-height:1.6;margin:10px 0 0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace
+  }
+  pre.schema .k{color:#7DD3FC}
+  pre.schema .s{color:#86EFAC}
+
+  footer{background:var(--ink);color:#94A3B8;font-size:12.5px;padding:26px 0;margin-top:0}
+  footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+  .hidden{display:none !important}
+  @media (max-width:900px){
+    .detail{grid-template-columns:1fr}
+    .hero h1{font-size:28px}
+  }
+</style>
+</head>
+<body class="show-anno">
+
+<div class="toggle-bar">
+  <div class="wrap">
+    <div class="tag">Q&amp;A HUB MOCK-UP <em>— hirschs.co.za</em></div>
+    <div class="switches">
+      <button class="switch on" id="annoBtn">SEO annotations: ON</button>
+      <button class="switch" id="homeBtn">← Back to hub</button>
+    </div>
+  </div>
+</div>
+
+<div class="topbar">
+  <div class="wrap">
+    <div class="left">
+      <span>Trusted Since 1979</span><span>15 stores nationwide</span><span>Free delivery over R1 000</span>
+    </div>
+    <div>Track order · Book a repair · 031 582 4401</div>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <a class="logo" href="#" onclick="showHub();return false;"><img src="data:image/png;base64,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" alt="Hirsch's — TV's, appliances &amp; much more"></a>
+    <nav class="nav">
+      <a>Fridges &amp; Freezers</a><a>Laundry</a><a>Cooking</a><a>TV &amp; Audio</a>
+      <a>Cooling &amp; Heating</a><a>Small Appliances</a><a>Beds</a>
+      <a style="color:var(--accent);font-weight:700">Answer Hub</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ========================= HUB VIEW ========================= -->
+<div id="hubView">
+  <section class="hero">
+    <div class="wrap">
+      <h1>Hirsch's Answer Hub</h1>
+      <p>Straight answers to the questions South African homeowners actually ask — from load shedding and Eskom bills to which mattress ends your back pain.</p>
+      <div class="searchbox">
+        <input placeholder="Ask a question — e.g. “what size fridge for a family of four?”">
+        <button>Search</button>
+      </div>
+    </div>
+  </section>
+
+  <main>
+    <div class="wrap">
+      <div class="anno" style="margin-top:20px">
+        <b>Hub page URL:</b> <code>/answers/</code> &nbsp;·&nbsp; <b>Schema:</b> <code>FAQPage</code> covering every Tier&nbsp;B accordion on this page, plus <code>ItemList</code> pointing at the Tier&nbsp;A pages.
+        The Tier&nbsp;B answers live <i>on this page</i> — no click required — which is exactly the content Google's passage indexing can lift into a snippet.
+      </div>
+
+      <div class="cat-nav" id="catNav"></div>
+
+      <!-- Tier A -->
+      <div class="section-head">
+        <h2>In-depth guides</h2>
+        <span class="count" id="countA"></span>
+        <span class="anno-inline">TIER A — own URL, own products</span>
+      </div>
+      <div class="rule"></div>
+      <div class="anno">
+        <b>Why these get their own page:</b> commercial intent + a multi-section answer + a question-specific product shelf.
+        A shared accordion can't hang four different “matched products” modules off four different questions — and each of these deserves its own URL for internal linking, Search Console tracking and link acquisition.
+      </div>
+      <div class="cards" id="cardsA"></div>
+
+      <!-- Tier B -->
+      <div class="section-head">
+        <h2>Quick answers</h2>
+        <span class="count" id="countB"></span>
+        <span class="anno-inline">TIER B — answered inline, no separate page</span>
+      </div>
+      <div class="rule"></div>
+      <div class="anno">
+        <b>Why these do NOT get their own page:</b> each is a 2–4 sentence factual answer with no product to sell against it.
+        Given a dedicated URL they'd be thin pages competing with each other. Kept here, they add depth to a page that already has authority, they're marked up with <code>FAQPage</code>, and passage indexing lets Google rank <i>this</i> page for each individual question — while the user gets the answer with zero clicks.
+      </div>
+      <div class="faq" id="faqB"></div>
+
+      <!-- Strategy -->
+      <section class="strategy">
+        <h2>Structure recommendation</h2>
+        <p class="lead">The brief asked whether every question needs its own page, or whether passage indexing can surface answers in place. The answer is neither extreme — it's a two-tier split, and the deciding factor is whether the question has a product attached to it.</p>
+
+        <div class="tiers">
+          <div class="tier a">
+            <span class="badge">Tier A · dedicated page</span>
+            <h3>8 questions</h3>
+            <p>Commercial or high-consideration questions that need a long answer <em>and</em> earn revenue from a matched product shelf.</p>
+            <ul>
+              <li>Own URL: <code>/answers/best-fridge-for-load-shedding/</code></li>
+              <li>Related Products module, hand-matched per question</li>
+              <li>Related Questions module for internal link equity</li>
+              <li>Trackable individually in Search Console</li>
+            </ul>
+          </div>
+          <div class="tier b">
+            <span class="badge">Tier B · inline accordion</span>
+            <h3>20 questions</h3>
+            <p>Short factual answers with no product tie-in. Consolidated onto the hub so users never click for a one-line fact.</p>
+            <ul>
+              <li>No URL of their own — anchor links only</li>
+              <li><code>FAQPage</code> schema on the hub page</li>
+              <li>Surfaced via passage indexing &amp; featured snippets</li>
+              <li>Feeds hub-page authority instead of splitting it</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="verdict">
+          <b>On passage indexing specifically:</b> it lets Google rank a single long page for a narrow sub-question buried mid-page, even when that question isn't in the title or H1. That's a strong argument for <i>consolidating</i> low-value questions — it removes the old excuse of “we need a separate page or it'll never rank.”
+          What it does <b>not</b> do is remove the reasons a high-value question still wants its own page: a unique URL to link to and earn links with, per-question performance data, and a product shelf that can only be matched one-question-at-a-time.
+          Passage indexing is a reason to build fewer, better pages — not zero pages.
+          <br><br>
+          <b>The failure mode to avoid</b> is the one in the original Cars.co.za structure: sending a user to a new page to read two sentences. That's a wasted click and a thin page, and it's now unnecessary.
+        </div>
+
+        <div class="anno" style="margin-top:20px">
+          <b>Markup for this hub page — <code>FAQPage</code> (Tier B answers only):</b>
+<pre class="schema">{
+  <span class="k">"@context"</span>: <span class="s">"https://schema.org"</span>,
+  <span class="k">"@type"</span>: <span class="s">"FAQPage"</span>,
+  <span class="k">"mainEntity"</span>: [{
+    <span class="k">"@type"</span>: <span class="s">"Question"</span>,
+    <span class="k">"name"</span>: <span class="s">"How long can food stay safe in the fridge during load shedding?"</span>,
+    <span class="k">"acceptedAnswer"</span>: {
+      <span class="k">"@type"</span>: <span class="s">"Answer"</span>,
+      <span class="k">"text"</span>: <span class="s">"A closed fridge holds a safe temperature for about 4 hours..."</span>
+    }
+  }]
+}</pre>
+          Tier A pages use <code>Article</code> + <code>ItemList</code> (for the product shelf) instead — not <code>FAQPage</code>, so the two don't compete for the same rich result.
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<!-- ========================= DETAIL VIEW ========================= -->
+<div id="detailView" class="hidden">
+  <main>
+    <div class="wrap">
+      <div class="crumbs"><a href="#" onclick="showHub();return false;">Home</a> › <a href="#" onclick="showHub();return false;">Answer Hub</a> › <span id="dCrumb"></span></div>
+      <div class="anno"><b>Tier A page URL:</b> <code id="dUrl"></code> &nbsp;·&nbsp; <b>Schema:</b> <code>Article</code> + <code>BreadcrumbList</code> + <code>ItemList</code> on the product shelf. Not <code>FAQPage</code> — that's reserved for the hub.</div>
+      <div class="detail">
+        <div>
+          <h1 id="dTitle"></h1>
+          <div class="byline">
+            <span>Hirsch's Product Team</span><span class="dot"></span>
+            <span>Updated September 2026</span><span class="dot"></span>
+            <span id="dRead"></span>
+          </div>
+
+          <div class="quickans">
+            <div class="lbl">Quick answer</div>
+            <p id="dQuick"></p>
+          </div>
+          <div class="anno">
+            <b>This block is the passage-indexing target.</b> 40–60 words, directly answers the H1, placed above the fold and before any preamble.
+            It's what Google lifts for a featured snippet and what an AI Overview quotes — so it must be self-contained and factually complete on its own.
+          </div>
+
+          <div class="body" id="dBody"></div>
+
+          <!-- products -->
+          <div class="module">
+            <div class="module-head">
+              <h2 id="dProdTitle">Recommended for this question</h2>
+              <span class="sub" id="dProdSub"></span>
+            </div>
+            <div class="anno">
+              <b>This module is the entire reason this question earns a dedicated page.</b> The products are matched to <i>this</i> question's answer, not to the category.
+              Twenty accordion rows on the hub page can't each carry their own shelf without the page collapsing into noise.
+            </div>
+            <div class="prods" id="dProds"></div>
+          </div>
+
+          <!-- related questions -->
+          <div class="module">
+            <div class="module-head">
+              <h2>Related questions</h2>
+              <span class="sub">Keeps users in the hub and passes internal link equity between Tier A pages</span>
+            </div>
+            <div class="rq" id="dRelated"></div>
+          </div>
+        </div>
+
+        <aside>
+          <div class="box">
+            <h4>On this page</h4>
+            <div class="toc" id="dToc"></div>
+          </div>
+          <div class="box helpbox">
+            <h4>Still not sure?</h4>
+            <p>Our in-store consultants size appliances for your space every day. Fifteen branches nationwide.</p>
+            <button>Find your nearest store</button>
+          </div>
+          <div class="box">
+            <h4>Quick answers</h4>
+            <div class="toc" id="dQuickLinks"></div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div>Hirsch's Answer Hub — structural mock-up. Not affiliated with Hirsch's; for content-strategy illustration only.</div>
+    <div>Generated 16 Sep 2026</div>
+  </div>
+</footer>
+
+<script>
+/* ============================ DATA ============================ */
+
+const PRODUCTS = {
+  // sourced live from hirschs.co.za/fridges-and-freezers on 16 Sep 2026
+  samsungRB33:   {name:"Samsung 321L Combi Refrigerator — RB33J3", price:"R 10 999.99", was:"R 12 799.99", src:"real"},
+  defyDAC674:    {name:"Defy Combi Fridge Freezer — DAC674", price:"R 9 499.99", was:"R 10 599.99", src:"real"},
+  hisenseH225:   {name:"Hisense 154L Combi Refrigerator — H225TTS", price:"R 3 299.99", was:"R 3 799.99", src:"real"},
+  samsungBespoke:{name:"Samsung Bespoke 4-Door French Door — RF29BB8600MTFA", price:"R 39 999.99", was:"R 54 999.99", src:"real"},
+  boschKIR81:    {name:"Bosch 319L Series 6 Integrated Fridge — KIR81AF30U", price:"R 22 999.99", was:"R 25 999.99", src:"real"},
+  defyDAD238:    {name:"Defy D200 157L Eco Fridge Top Freezer — DAD238", price:"R 3 999.99", was:"R 4 399.99", src:"real"},
+  mideaHS306:    {name:"Midea 231L Stainless Upright Full Fridge — HS-306LNS", price:"R 4 999.99", was:"R 5 299.99", src:"real"},
+  boschGSN33:    {name:"Bosch 225L Inox Full Freezer — GSN33V131Z", price:"R 12 999.99", was:"R 14 999.99", src:"real"},
+
+  // illustrative placeholders — category is real, exact model/price not scraped
+  ac9k:   {name:"9 000 BTU Inverter Split Air Conditioner", price:"R 9 499", src:"mock"},
+  ac12k:  {name:"12 000 BTU Wind-Free Inverter Split A/C", price:"R 11 999", src:"mock"},
+  ac18k:  {name:"18 000 BTU Inverter Split Air Conditioner", price:"R 16 999", src:"mock"},
+  ac24k:  {name:"24 000 BTU Inverter Split Air Conditioner", price:"R 24 999", src:"mock"},
+  wmFront9:  {name:"9 kg EcoBubble Front Loader Washing Machine", price:"R 10 499", src:"mock"},
+  wmFront8:  {name:"8 kg Series 6 Front Loader Washing Machine", price:"R 12 999", src:"mock"},
+  wmTop13:   {name:"13 kg Top Loader Washing Machine", price:"R 6 999", src:"mock"},
+  wmTop17:   {name:"17 kg Turbo Drum Top Loader", price:"R 9 999", src:"mock"},
+  tvQled65:  {name:"65\" QLED 4K Smart TV", price:"R 18 999", src:"mock"},
+  tvUled65:  {name:"65\" ULED 4K Smart TV", price:"R 13 999", src:"mock"},
+  tvOled55:  {name:"55\" OLED evo 4K Smart TV", price:"R 21 999", src:"mock"},
+  tvQled75:  {name:"75\" QLED 4K Smart TV", price:"R 27 999", src:"mock"},
+  mattTempur:{name:"TEMPUR Original Queen Mattress", price:"R 34 999", src:"mock"},
+  mattMagni: {name:"Magniflex Wellness Queen Mattress", price:"R 19 999", src:"mock"},
+  mattPost:  {name:"Posturepedic Firm Support Queen Mattress", price:"R 14 999", src:"mock"},
+  gasHob:    {name:"60 cm 4-Burner Gas Hob", price:"R 7 999", src:"mock"},
+  induction: {name:"60 cm Induction Hob", price:"R 11 999", src:"mock"},
+  elecStove: {name:"600 mm 4-Plate Electric Stove", price:"R 5 499", src:"mock"},
+  gasCyl:    {name:"9 kg Gas Cylinder + Regulator Kit", price:"R 1 299", src:"mock"},
+  heatPump:  {name:"150 L Geyser Heat Pump Conversion", price:"R 18 999", src:"mock"},
+  airfryer:  {name:"7 L Dual-Zone Air Fryer", price:"R 2 499", src:"mock"},
+  dryerHP:   {name:"8 kg Heat Pump Tumble Dryer", price:"R 14 999", src:"mock"}
+};
+
+const CATS = ["All","Fridges & Freezers","Laundry","Cooling & Heating","TV & Audio","Cooking","Beds","Service"];
+
+/* ---- TIER A: dedicated pages ---- */
+const TIER_A = [
+  {
+    id:"load-shedding-fridge",
+    cat:"Fridges & Freezers",
+    q:"Which fridge is best for load shedding?",
+    url:"/answers/best-fridge-for-load-shedding/",
+    teaser:"Inverter compressors, insulation quality and what it actually takes to run a fridge off a home inverter.",
+    read:"6 min read",
+    quick:"For load shedding, choose a fridge with an inverter (variable-speed) compressor. It restarts smoothly after power returns, draws a far lower start-up surge than a conventional compressor, and will run off a mid-sized home inverter. A well-sealed fridge also holds a safe temperature for about four hours unopened — enough to cover a standard two-hour stage.",
+    products:["samsungRB33","defyDAC674","hisenseH225","samsungBespoke"],
+    prodSub:"Combi models with inverter compressors, priced across the range",
+    related:["fridge-size-family","best-tv-bright-lounge","cut-eskom-bill","aircon-btu-size"],
+    body:[
+      {h:"Why the compressor type matters more than anything else",p:[
+        "A conventional compressor is either off or running flat out. Every time power returns it slams back on at full load, which is both the moment it draws the biggest current spike and the moment it's most likely to fail. Over hundreds of load-shedding cycles a year, that's real wear.",
+        "An inverter compressor varies its speed instead. It ramps up gently, so the start-up surge is a fraction of a conventional unit's — which is what makes it viable on battery backup — and it spends most of its life running slowly rather than cycling hard. Lower surge, lower running watts, less wear from the restarts."
+      ]},
+      {h:"How long your food is actually safe",p:[
+        "The single biggest factor is whether you open the door. Assuming you don't:"
+      ],table:[
+        ["Fridge compartment, closed","≈ 4 hours above 5 °C risk threshold"],
+        ["Freezer, half full, closed","≈ 24 hours"],
+        ["Freezer, full, closed","≈ 48 hours"],
+        ["Fridge, door opened repeatedly","Under 2 hours"]
+      ],after:[
+        "A standard two-hour stage is comfortably inside the safe window for any decent fridge. The problem is stage 4 and above, where you can get two or three cuts in a single day and the compartment never fully recovers between them. That's when compressor quality and insulation start to matter."
+      ]},
+      {h:"Running a fridge on an inverter or UPS",p:[
+        "A 300-litre inverter fridge typically draws 100–200 W while running, but only runs its compressor perhaps 30–40% of the time, so realistic consumption is closer to 1–1.5 kWh per day.",
+        "As a rough guide: a 1 200 VA inverter paired with a 100 Ah lithium battery will keep a single inverter fridge running through a 2–4 hour stage with headroom to spare. The catch is start-up surge — a conventional compressor can briefly pull five to seven times its running current, which is what trips undersized inverters. This is the practical reason to buy inverter-compressor models if backup power is on your roadmap.",
+        "Always check the rated surge of your inverter against the fridge's locked-rotor amps before committing. Our in-store team can pull the spec sheet for any model."
+      ]},
+      {h:"What to look for on the shelf",p:[],list:[
+        "Inverter or digital inverter compressor — usually badged, and usually carries a 10-year compressor warranty",
+        "A 10-year compressor warranty is itself a proxy for build quality",
+        "Thicker insulation and a good door seal — the cheapest way to extend your safe window",
+        "A freezer you can keep full: frozen mass is thermal ballast, and a full freezer holds twice as long as a half-empty one",
+        "Avoid running a fridge off a generator without a voltage regulator — dirty power kills control boards"
+      ]}
+    ]
+  },
+  {
+    id:"aircon-btu-size",
+    cat:"Cooling & Heating",
+    q:"What size air conditioner (BTU) do I need for my room?",
+    url:"/answers/what-size-air-conditioner-btu/",
+    teaser:"A sizing table by room area, plus why an oversized unit cools worse than a correctly sized one.",
+    read:"5 min read",
+    quick:"Allow roughly 600–700 BTU per square metre. A 12 m² bedroom needs about 9 000 BTU; a 30 m² open-plan living area needs 18 000–24 000 BTU. Add 10–20% for west-facing rooms, large unshaded windows, high ceilings or a kitchen. Oversizing is a real mistake — it cools fast, shuts off early and leaves the room clammy.",
+    products:["ac9k","ac12k","ac18k","ac24k"],
+    prodSub:"Matched to the sizing table above — inverter split units",
+    related:["load-shedding-fridge","cut-eskom-bill","front-vs-top-loader","gas-vs-electric-stove"],
+    body:[
+      {h:"Sizing by room area",p:["Measure floor area first, then adjust for the conditions below."],
+        table:[
+          ["Up to 15 m² (small bedroom)","9 000 BTU"],
+          ["15 – 22 m² (main bedroom)","12 000 BTU"],
+          ["22 – 33 m² (lounge / open-plan)","18 000 BTU"],
+          ["33 – 45 m² (large open-plan)","24 000 BTU"],
+          ["Over 45 m²","Multi-split or ducted — get an assessment"]
+        ],
+        after:["Add roughly 10–20% capacity if the room faces west, has large unshaded glass, a ceiling above 2.7 m, a poorly insulated roof directly above, or opens onto a kitchen."]},
+      {h:"Why bigger is not better",p:[
+        "An oversized air conditioner drives the room to temperature quickly, hits its setpoint, and switches off. That sounds efficient. It isn't — because removing humidity takes sustained runtime, and a unit that short-cycles never runs long enough to dehumidify. The result is a room that's cold but feels damp, with the compressor starting and stopping constantly, which is exactly the duty cycle that wears it out.",
+        "A correctly sized unit runs longer at lower output, holds temperature more evenly, and pulls moisture out properly. On Durban's coastal humidity in particular, this is the difference between comfortable and merely cold."
+      ]},
+      {h:"Inverter vs non-inverter",p:[
+        "A non-inverter unit is on or off at full power. An inverter unit modulates its output to match demand, so once the room is at temperature it idles at low power rather than cycling. On a unit running several hours a day, an inverter typically cuts running costs by 30–40% and is markedly quieter.",
+        "Unless you're cooling a room you use for an hour a week, inverter is the default recommendation."
+      ]},
+      {h:"Don't forget installation",p:[
+        "A split unit is not a plug-in appliance. The quoted price rarely includes the outdoor unit mounting, refrigerant piping run, drainage and electrical connection, and a long pipe run between indoor and outdoor units costs both money and efficiency. Get the installation quoted at the same time as the unit — Hirsch's Air handles this in-house."
+      ]}
+    ]
+  },
+  {
+    id:"front-vs-top-loader",
+    cat:"Laundry",
+    q:"Front loader vs top loader: which washing machine should you buy?",
+    url:"/answers/front-loader-vs-top-loader/",
+    teaser:"Water, electricity, wash quality and running cost compared — with the South African water-restriction angle.",
+    read:"5 min read",
+    quick:"Front loaders use roughly half the water and less electricity, wash more gently and spin drier, but cost more upfront and take longer per cycle. Top loaders are cheaper, faster and easier to load, but use noticeably more water. For most households on metered municipal water, a front loader recovers its price premium within a few years.",
+    products:["wmFront9","wmFront8","wmTop13","wmTop17"],
+    prodSub:"Two of each — compare running cost against upfront price",
+    related:["load-shedding-fridge","cut-eskom-bill","aircon-btu-size","mattress-back-pain"],
+    body:[
+      {h:"The comparison at a glance",p:[],
+        table:[
+          ["Water per wash","Front: ≈ 50 L  ·  Top: ≈ 100–150 L"],
+          ["Electricity","Front: lower (heats less water)  ·  Top: higher"],
+          ["Cycle time","Front: 1.5–3 hrs  ·  Top: 40–60 min"],
+          ["Spin speed","Front: 1 200–1 600 rpm  ·  Top: 700–1 000 rpm"],
+          ["Fabric care","Front: gentler tumble  ·  Top: agitator wear"],
+          ["Upfront price","Front: higher  ·  Top: lower"],
+          ["Loading","Front: bending required  ·  Top: no bending, add mid-cycle"]
+        ]},
+      {h:"Where the running cost actually comes from",p:[
+        "Most of a washing machine's electricity goes into heating water, not turning the drum. A front loader tumbles clothes through a shallow pool rather than submerging them, so it heats far less water — which is why it wins on both the water bill and the electricity bill at once.",
+        "The higher spin speed compounds the saving. Clothes leaving a 1 400 rpm front loader are meaningfully drier than those leaving a 900 rpm top loader, which cuts tumble dryer time — and the dryer is usually the most expensive appliance in the laundry."
+      ]},
+      {h:"When a top loader is the right call",p:[],list:[
+        "You're doing several loads a day and cycle time is the bottleneck",
+        "Bending to a front-loading door is a physical problem",
+        "You routinely remember a stray sock after the cycle has started",
+        "Upfront budget is the binding constraint, not running cost",
+        "You're on borehole or tank water where litres cost you nothing"
+      ]},
+      {h:"The water-restriction argument",p:[
+        "South African municipalities have applied water restrictions in most major metros within the last decade, and stepped tariffs mean the marginal litre gets more expensive the more you use. A household running eight loads a week saves roughly 30 000–40 000 litres a year by switching from top to front loader. At stepped-tariff rates that's a real number, and it's the single strongest argument for the front loader in this market."
+      ]}
+    ]
+  },
+  {
+    id:"fridge-size-family",
+    cat:"Fridges & Freezers",
+    q:"What size fridge do I need for a family of four?",
+    url:"/answers/what-size-fridge-family-of-four/",
+    teaser:"Litres per person, plus how shopping habits and freezer needs change the answer.",
+    read:"4 min read",
+    quick:"Budget roughly 100 litres per adult plus 50–70 litres for each additional person. A family of four is comfortable in a 300–400 litre combi fridge-freezer. Go to 500 litres or a side-by-side if you shop monthly, batch-cook, or run a chest freezer's worth of meat through the house.",
+    products:["samsungRB33","defyDAC674","samsungBespoke","boschKIR81"],
+    prodSub:"300–600 L combi and French door models",
+    related:["load-shedding-fridge","cut-eskom-bill","aircon-btu-size","gas-vs-electric-stove"],
+    body:[
+      {h:"The litres-per-person rule",p:["Start here, then adjust:"],
+        table:[
+          ["1–2 people","150 – 250 L"],
+          ["3–4 people","300 – 400 L"],
+          ["5–6 people","400 – 550 L"],
+          ["Monthly shoppers / batch cooks","Add 100 L or add a chest freezer"]
+        ],
+        after:["Measure the alcove before you fall in love with a model — width, height, depth, plus 50 mm clearance at the back for ventilation and enough swing for the door to open past 90° so the salad drawers clear."]},
+      {h:"Combi, side-by-side or French door?",p:[
+        "A combi (fridge on top, freezer below, or the reverse) is the efficient default — it gives the most usable litres per rand and per square metre of floor. A bottom-freezer combi puts the compartment you use most at eye level.",
+        "Side-by-side and French door models buy you wide-shelf storage for platters and better freezer organisation, but they need a wider alcove and a bigger door swing, and cost more per litre. They earn their place in open-plan kitchens where the fridge is also a design object."
+      ]}
+    ]
+  },
+  {
+    id:"cut-eskom-bill",
+    cat:"Cooling & Heating",
+    q:"Which appliances actually cut your Eskom bill?",
+    url:"/answers/appliances-that-cut-your-electricity-bill/",
+    teaser:"Ranked by rand saved per year — geyser first, everything else second.",
+    read:"6 min read",
+    quick:"Your geyser is 30–40% of a typical household electricity bill, so it's the only upgrade that moves the needle on its own — a heat pump conversion cuts that portion by roughly two-thirds. After the geyser, the order is: air conditioner (inverter), tumble dryer (heat pump), fridge (inverter), then everything else. Kettles and lights are rounding errors by comparison.",
+    products:["heatPump","dryerHP","ac12k","samsungRB33"],
+    prodSub:"Ranked by annual rand saved, highest first",
+    related:["load-shedding-fridge","aircon-btu-size","front-vs-top-loader","gas-vs-electric-stove"],
+    body:[
+      {h:"Where the money actually goes",p:["Typical South African household split — your mix will vary, but the ranking rarely does:"],
+        table:[
+          ["Geyser / hot water","30 – 40%"],
+          ["Space heating & cooling","10 – 20%"],
+          ["Tumble dryer","5 – 10%"],
+          ["Fridge & freezer","5 – 8%"],
+          ["Cooking","4 – 8%"],
+          ["Lighting, electronics, standby","5 – 10%"]
+        ],
+        after:["The implication is blunt: replacing every bulb in the house saves less than fixing the geyser once."]},
+      {h:"Start with hot water",p:[
+        "A geyser heat pump moves heat rather than generating it, using roughly a third of the electricity of a resistive element for the same hot water. A geyser blanket and pipe insulation cost a few hundred rand and cut standing losses immediately. A timer helps less than people expect — a well-insulated geyser loses little overnight — but it's cheap.",
+        "If you're on a prepaid meter and watching units drain, this is where they're going."
+      ]},
+      {h:"Then the things that run for hours",p:[
+        "The rule of thumb: an appliance's annual cost is about its wattage times the hours it actually runs. A 2 000 W kettle used for five minutes a day costs almost nothing. A 1 000 W air conditioner running six hours a night in summer costs a great deal. Prioritise by runtime, not by the number on the label."
+      ]}
+    ]
+  },
+  {
+    id:"best-tv-bright-lounge",
+    cat:"TV & Audio",
+    q:"Which TV is best for a bright, sunlit lounge?",
+    url:"/answers/best-tv-for-a-bright-room/",
+    teaser:"Why OLED's contrast advantage disappears in daylight, and what to buy instead.",
+    read:"5 min read",
+    quick:"In a bright room, choose a QLED or mini-LED TV with a matte or anti-glare screen — peak brightness and reflection handling matter far more than contrast ratio. OLED's perfect blacks are its advantage in a dark room, but daylight raises the visible black level anyway and most OLED panels are glossier. Aim for 1 000+ nits peak brightness.",
+    products:["tvQled65","tvUled65","tvQled75","tvOled55"],
+    prodSub:"Three bright-room picks plus one OLED for comparison",
+    related:["cut-eskom-bill","aircon-btu-size","load-shedding-fridge","mattress-back-pain"],
+    body:[
+      {h:"Brightness beats contrast in daylight",p:[
+        "A TV's contrast ratio is measured in a dark room. Put the same panel in a lounge with north-facing glass at midday and ambient light raises the floor of the black level no matter how good the panel is — which erases most of OLED's advantage, while its glossy coating reflects the window straight back at you.",
+        "QLED and mini-LED panels get substantially brighter, so the picture stays punchy against ambient light, and they more commonly ship with anti-reflective coatings."
+      ]},
+      {h:"What to check in store",p:[],list:[
+        "Peak brightness: 1 000 nits or more for a genuinely bright room",
+        "Screen coating: matte or anti-glare, not mirror-gloss",
+        "Viewing angle, if your seating is spread wide across the room",
+        "Where the window actually is relative to the screen — mount to avoid direct reflection before you spend more on the panel"
+      ]},
+      {h:"Sizing and distance",p:[
+        "For 4K, sit roughly 1.2–1.5 times the screen's diagonal away. A 65\" set suits a 2–2.5 m viewing distance; at 3 m or more you'll appreciate a 75\". Most people under-buy on size and over-buy on specification."
+      ]}
+    ]
+  },
+  {
+    id:"gas-vs-electric-stove",
+    cat:"Cooking",
+    q:"Gas, electric or induction: which should you install?",
+    url:"/answers/gas-vs-electric-vs-induction-hob/",
+    teaser:"Running cost, load-shedding resilience, installation requirements and cooking control compared.",
+    read:"5 min read",
+    quick:"Gas gives instant control and keeps working during load shedding, but needs a certified installation and cylinder logistics. Induction is the fastest and most efficient electric option and is easiest to clean, but requires magnetic cookware and dies with the power. Electric coil is cheapest upfront and worst on both control and efficiency.",
+    products:["gasHob","induction","elecStove","gasCyl"],
+    prodSub:"One of each, plus the cylinder kit gas installs need",
+    related:["cut-eskom-bill","fridge-size-family","load-shedding-fridge","front-vs-top-loader"],
+    body:[
+      {h:"The three-way comparison",p:[],
+        table:[
+          ["Works during load shedding","Gas: yes  ·  Induction: no  ·  Electric: no"],
+          ["Heat control","Gas: instant  ·  Induction: instant  ·  Electric: slow"],
+          ["Efficiency","Induction ≈ 85%  ·  Gas ≈ 40%  ·  Electric coil ≈ 70%"],
+          ["Cleaning","Induction: flat glass  ·  Gas: grates and burners"],
+          ["Cookware","Induction needs magnetic bases  ·  Others: any"],
+          ["Installation","Gas: certified installer + COC  ·  Others: electrical"]
+        ]},
+      {h:"The load-shedding argument for gas",p:[
+        "A gas hob is the only cooking surface that keeps working when the power goes. For many South African households that alone settles it — particularly if load shedding tends to land over dinner time.",
+        "The trade-off is the install: a piped or cylinder gas installation must be done by a registered installer and issued with a Certificate of Conformity, which matters for insurance. Budget for it rather than being surprised by it. A common compromise is a hybrid hob — two gas burners plus two electric or induction zones — which covers both scenarios."
+      ]},
+      {h:"Why induction is winning kitchens",p:[
+        "Induction heats the pot directly by magnetic field rather than heating a surface that then heats the pot, so almost none of the energy is wasted warming your kitchen. It boils water faster than gas, responds instantly, and the glass surface stays cool enough that spills don't bake on.",
+        "The requirement is cookware with a magnetic base — if a fridge magnet sticks to the bottom of your pot, it works. Most modern stainless and cast iron qualifies; aluminium and copper don't."
+      ]}
+    ]
+  },
+  {
+    id:"mattress-back-pain",
+    cat:"Beds",
+    q:"Which mattress is best for back pain?",
+    url:"/answers/best-mattress-for-back-pain/",
+    teaser:"Firmness vs support, sleeping position, and when the mattress isn't the problem.",
+    read:"5 min read",
+    quick:"For most back pain, a medium-firm mattress that keeps your spine level while contouring to your hips and shoulders outperforms both very firm and very soft. Side sleepers need more give at the shoulder; back and stomach sleepers need firmer support. Firmness and support are different things — a mattress can be soft and supportive, or hard and unsupportive.",
+    products:["mattTempur","mattMagni","mattPost"],
+    prodSub:"Medium-firm across three price points",
+    related:["best-tv-bright-lounge","cut-eskom-bill","front-vs-top-loader","fridge-size-family"],
+    body:[
+      {h:"Firmness is not support",p:[
+        "Support means keeping your spine in a neutral line. Firmness is just surface feel. A plank is maximally firm and badly unsupportive for a side sleeper, because it forces the spine into a curve at the hip and shoulder. The widely repeated advice that back pain needs the hardest mattress available is the most common mistake we see on the shop floor.",
+        "What you want is a surface that yields enough at the hip and shoulder for them to sink in, while holding the lumbar region up. In practice that lands most people at medium-firm."
+      ]},
+      {h:"Match it to how you sleep",p:[],
+        table:[
+          ["Side sleeper","Medium to medium-firm — needs shoulder and hip give"],
+          ["Back sleeper","Medium-firm — lumbar support is the priority"],
+          ["Stomach sleeper","Firm — stops the hips dropping and hyper-extending the lower back"],
+          ["Couples with different needs","Split-firmness base or a dual-comfort mattress"]
+        ]},
+      {h:"When it isn't the mattress",p:[
+        "If your mattress is under about seven years old and shows no visible dip, the pillow is a more likely culprit — it sets neck and upper-spine alignment and is replaced far too rarely. A sagging base under a good mattress will also undo it entirely; bases wear out and should be replaced alongside the mattress, not outlived by it."
+      ]}
+    ]
+  }
+];
+
+/* ---- TIER B: inline accordion, no page of their own ---- */
+const TIER_B = [
+  {cat:"Fridges & Freezers", q:"How long can food stay safe in the fridge during load shedding?",
+   a:["A closed fridge holds a safe temperature for about four hours. A half-full freezer holds around 24 hours and a full freezer around 48. The rule that matters is simple: keep the door shut. Opening it repeatedly cuts the fridge's safe window to under two hours."],
+   deep:"load-shedding-fridge", deepLabel:"Which fridge is best for load shedding? →"},
+  {cat:"Fridges & Freezers", q:"How long should a new fridge stand before I switch it on?",
+   a:["If it was transported upright, four to six hours is enough. If it travelled on its side, leave it standing for a full 24 hours. This lets compressor oil drain back out of the refrigerant lines — switching on too early can push oil into the cooling circuit and damage the compressor."]},
+  {cat:"Fridges & Freezers", q:"What does “frost free” actually mean?",
+   a:["A frost-free fridge circulates air with a fan and runs short automatic defrost cycles, so ice never builds up and you never have to defrost it manually. The trade-offs are marginally higher electricity use and drier air inside, so uncovered food dehydrates faster — keep things sealed or in the crisper."]},
+  {cat:"Fridges & Freezers", q:"What do the A–G energy labels mean?",
+   a:["They rank an appliance's energy consumption relative to others of its size and type, with A the most efficient. The scale was rebased in recent years, so an older A++ rating and a new A rating aren't directly comparable. For a real-world comparison, ignore the letter and look at the kWh-per-year figure printed on the same label."]},
+
+  {cat:"Laundry", q:"What's the difference between a vented, condenser and heat pump tumble dryer?",
+   a:["A vented dryer blows hot, damp air out through a hose, so it needs an external wall or open window. A condenser dryer condenses that moisture into a tank you empty, so it can go anywhere. A heat pump dryer recycles its own heat and uses roughly half the electricity of either, dries at a lower temperature that's gentler on fabric, but costs more upfront and takes longer per load."],
+   deep:"cut-eskom-bill", deepLabel:"Which appliances actually cut your Eskom bill? →"},
+  {cat:"Laundry", q:"How often should I clean my washing machine?",
+   a:["Run an empty maintenance wash at the hottest setting once a month, with either a machine cleaner or white vinegar. On a front loader, also wipe the rubber door seal dry and leave the door ajar between washes — trapped moisture in the seal is the usual source of that musty smell. Clean the lint filter and detergent drawer monthly."]},
+  {cat:"Laundry", q:"How much washing powder should I actually use?",
+   a:["Almost certainly less than you're using. Dosing instructions assume a full load in hard water; most households run partial loads and over-dose by habit. Excess detergent doesn't rinse out, leaving residue that stiffens fabric and builds up inside the machine. Start at half the recommended dose and increase only if clothes aren't coming out clean."]},
+
+  {cat:"TV & Audio", q:"What's the difference between QLED and OLED?",
+   a:["OLED pixels produce their own light and can switch off completely, giving perfect blacks and outstanding contrast in a dark room. QLED is an LED-backlit LCD with a quantum-dot layer, so it gets significantly brighter and handles daylight and reflections better. Dark home-theatre room: OLED. Bright lounge: QLED."],
+   deep:"best-tv-bright-lounge", deepLabel:"Which TV is best for a bright, sunlit lounge? →"},
+  {cat:"TV & Audio", q:"How far should I sit from a 65-inch TV?",
+   a:["Roughly 2 to 2.5 metres for 4K content. The general rule is 1.2 to 1.5 times the screen diagonal. At 3 metres or more, a 65\" screen will feel small and you should be looking at a 75\"."]},
+  {cat:"TV & Audio", q:"Do I need a soundbar if my TV already has speakers?",
+   a:["Modern TVs are too thin to house speakers that fire toward you — most point downward or backward, which is why dialogue sounds muddy. Even an entry-level soundbar is a bigger upgrade to perceived picture quality than most people expect. If you mainly watch news and sport you may not care; for films and series, it's the highest-value accessory on the shelf."]},
+
+  {cat:"Cooking", q:"How many watts does an air fryer use?",
+   a:["Typically 1 400 to 2 100 W. That sounds high next to an oven's 2 000–2 500 W, but the air fryer's cavity is a fraction of the size, needs no preheat and cooks faster — so total energy for a given meal is usually a third to a half of what the oven would draw. For one or two portions it's the cheapest way to cook."]},
+  {cat:"Cooking", q:"Can I put my air fryer basket in the dishwasher?",
+   a:["Most modern baskets and crisper plates are dishwasher safe — check the manual, because the non-stick coating is the variable. Repeated dishwasher cycles do degrade non-stick faster than hand washing. Soaking in warm soapy water for ten minutes removes almost anything without scrubbing."]},
+  {cat:"Cooking", q:"What size microwave do I need?",
+   a:["20–23 litres suits one or two people and reheating. 25–32 litres is the family standard and will fit a dinner plate comfortably with room to turn. Above 32 litres you're generally buying a convection or combination model that also bakes and grills, which only makes sense if it's replacing an oven rather than supplementing one."]},
+
+  {cat:"Cooling & Heating", q:"Inverter vs non-inverter air conditioner — what's the difference?",
+   a:["A non-inverter compressor runs at full power or not at all, cycling on and off to hold temperature. An inverter compressor varies its speed, idling at low power once the room is cool. For anything running more than an hour or two a day, an inverter typically cuts running cost by 30–40%, holds temperature more evenly and is noticeably quieter."],
+   deep:"aircon-btu-size", deepLabel:"What size air conditioner do I need? →"},
+  {cat:"Cooling & Heating", q:"How often should an air conditioner be serviced?",
+   a:["A full service once a year, before summer. Between services, clean or rinse the indoor filters yourself every month or two during heavy use — a clogged filter is the single most common cause of weak airflow and poor cooling, and it makes the unit work harder for less result."]},
+
+  {cat:"Beds", q:"How often should I replace my mattress?",
+   a:["Every seven to ten years for a quality mattress, sooner if you can see a dip, feel the springs, or consistently sleep better away from home. Replace the base at the same time — a worn base will undermine a new mattress within months and invalidate most warranties."],
+   deep:"mattress-back-pain", deepLabel:"Which mattress is best for back pain? →"},
+  {cat:"Beds", q:"What's the difference between a queen and a three-quarter bed?",
+   a:["A three-quarter is 137 cm wide, a queen is 152 cm, and a king is 183 cm. Standard length is 188 cm, with extra-length options at 200 cm — worth it if either sleeper is over about 1.8 m. A three-quarter is a comfortable single or a very tight double; two adults should start at queen."]},
+
+  {cat:"Service", q:"Does Hirsch's deliver and install?",
+   a:["Yes — delivery is free on qualifying orders, nationwide from fifteen branches. Installation is separate and depends on the appliance: dishwashers, washing machines and hobs need a plumbing or electrical connection, and air conditioners and gas hobs must be installed by certified technicians. Get installation quoted at the same time as the appliance."]},
+  {cat:"Service", q:"What warranty do appliances come with?",
+   a:["Most carry a manufacturer's warranty of one to two years on the full appliance, with extended cover on specific components — inverter compressors and some motors commonly carry ten years. Warranty covers manufacturing defects, not accidental damage, power-surge damage or incorrect installation. Keep your invoice; it's the proof of purchase date."]},
+  {cat:"Service", q:"Can I get an appliance repaired rather than replaced?",
+   a:["Yes — Hirsch's runs an in-house repair service and will book a technician for most major brands, whether or not you bought the appliance there. As a rule of thumb, if the repair quote exceeds about half the replacement cost on an appliance over eight years old, replacement is usually the better economics."]}
+];
+
+/* ============================ RENDER ============================ */
+let activeCat = "All";
+
+function prodCard(key){
+  const p = PRODUCTS[key];
+  const srcLabel = p.src === "real"
+    ? '<span class="src real anno">live hirschs.co.za</span>'
+    : '<span class="src mock anno">illustrative placeholder</span>';
+  return `<div class="prod">
+    <div class="thumb">PRODUCT IMAGE</div>
+    <div class="name">${p.name}</div>
+    <div>${srcLabel}</div>
+    <div class="price">${p.price}${p.was?`<span class="was">${p.was}</span>`:""}</div>
+    <button class="cta">Add to cart</button>
+  </div>`;
+}
+
+function renderCatNav(){
+  document.getElementById("catNav").innerHTML = CATS.map(c =>
+    `<button class="cat-pill ${c===activeCat?"on":""}" data-cat="${c}">${c}</button>`).join("");
+  document.querySelectorAll(".cat-pill").forEach(b =>
+    b.onclick = () => { activeCat = b.dataset.cat; renderCatNav(); renderHub(); });
+}
+
+function renderHub(){
+  const a = TIER_A.filter(q => activeCat==="All" || q.cat===activeCat);
+  const b = TIER_B.filter(q => activeCat==="All" || q.cat===activeCat);
+
+  document.getElementById("countA").textContent = `${a.length} question${a.length!==1?"s":""} · dedicated pages`;
+  document.getElementById("countB").textContent = `${b.length} question${b.length!==1?"s":""} · answered on this page`;
+
+  document.getElementById("cardsA").innerHTML = a.length ? a.map(q => `
+    <div class="qcard" onclick="showDetail('${q.id}')">
+      <div class="chips"><span class="chip cat">${q.cat}</span><span class="chip prod anno-inline" style="display:none">+ product shelf</span></div>
+      <h3>${q.q}</h3>
+      <p>${q.teaser}</p>
+      <div class="foot">
+        <span class="anno-inline">${q.url}</span>
+        <span class="go">Read the guide →</span>
+      </div>
+    </div>`).join("") : `<p style="color:var(--muted)">No in-depth guides in this category yet.</p>`;
+
+  document.getElementById("faqB").innerHTML = b.length ? b.map((q,i) => `
+    <div class="faq-item" data-i="${i}">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        <span>${q.q}</span><span class="ic">+</span>
+      </button>
+      <div class="faq-a">
+        ${q.a.map(p=>`<p>${p}</p>`).join("")}
+        ${q.deep?`<a class="deep" href="#" onclick="showDetail('${q.deep}');return false;">${q.deepLabel}</a>`:""}
+        <div class="anno" style="margin-top:12px">Anchor only — <code>/answers/#${q.q.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,44)}</code>. No standalone URL, no product shelf, included in this page's <code>FAQPage</code> markup.</div>
+      </div>
+    </div>`).join("") : `<p style="padding:18px;color:var(--muted)">No quick answers in this category yet.</p>`;
+
+  // re-apply annotation visibility to freshly rendered nodes
+  syncAnno();
+}
+
+function toggleFaq(btn){ btn.parentElement.classList.toggle("open"); }
+
+function showDetail(id){
+  const q = TIER_A.find(x => x.id === id);
+  if(!q) return;
+  document.getElementById("hubView").classList.add("hidden");
+  document.getElementById("detailView").classList.remove("hidden");
+
+  document.getElementById("dCrumb").textContent = q.cat;
+  document.getElementById("dUrl").textContent = q.url;
+  document.getElementById("dTitle").textContent = q.q;
+  document.getElementById("dRead").textContent = q.read;
+  document.getElementById("dQuick").textContent = q.quick;
+  document.getElementById("dProdSub").textContent = q.prodSub;
+
+  document.getElementById("dBody").innerHTML = q.body.map((s,i) => `
+    <h2 id="s${i}">${s.h}</h2>
+    ${(s.p||[]).map(p=>`<p>${p}</p>`).join("")}
+    ${s.table?`<table class="spec"><tbody>${s.table.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join("")}</tbody></table>`:""}
+    ${s.list?`<ul>${s.list.map(l=>`<li>${l}</li>`).join("")}</ul>`:""}
+    ${(s.after||[]).map(p=>`<p>${p}</p>`).join("")}
+  `).join("");
+
+  document.getElementById("dProds").innerHTML = q.products.map(prodCard).join("");
+
+  document.getElementById("dRelated").innerHTML = q.related.map(rid => {
+    const r = TIER_A.find(x => x.id === rid);
+    return r ? `<a href="#" onclick="showDetail('${r.id}');return false;"><span>${r.q}</span><span class="arrow">→</span></a>` : "";
+  }).join("");
+
+  document.getElementById("dToc").innerHTML = q.body.map((s,i)=>`<a href="#s${i}">${s.h}</a>`).join("");
+
+  document.getElementById("dQuickLinks").innerHTML = TIER_B.filter(t=>t.cat===q.cat).slice(0,4)
+    .map(t=>`<a href="#" onclick="showHub();return false;">${t.q}</a>`).join("")
+    || `<a href="#" onclick="showHub();return false;">Browse all quick answers →</a>`;
+
+  syncAnno();
+  window.scrollTo(0,0);
+}
+
+function showHub(){
+  document.getElementById("detailView").classList.add("hidden");
+  document.getElementById("hubView").classList.remove("hidden");
+  window.scrollTo(0,0);
+}
+
+function syncAnno(){
+  const on = document.body.classList.contains("show-anno");
+  document.querySelectorAll(".anno-inline").forEach(e => e.style.display = on ? "inline-flex" : "none");
+  document.querySelectorAll("span.src.anno").forEach(e => e.style.display = on ? "inline-block" : "none");
+}
+
+document.getElementById("annoBtn").onclick = function(){
+  document.body.classList.toggle("show-anno");
+  const on = document.body.classList.contains("show-anno");
+  this.classList.toggle("on", on);
+  this.textContent = "SEO annotations: " + (on ? "ON" : "OFF");
+  syncAnno();
+};
+document.getElementById("homeBtn").onclick = showHub;
+
+renderCatNav();
+renderHub();
+</script>
+</body>
+</html>
